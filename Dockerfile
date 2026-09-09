@@ -1,8 +1,8 @@
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies & PHP extensions
-RUN apk add --no-cache nginx supervisor git unzip libpng-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql bcmath gd zip
+RUN apk add --no-cache nginx supervisor git unzip libpng-dev libzip-dev zip pdo_sqlite sqlite-dev \
+    && docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -10,15 +10,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Install PHP dependencies without running post-install scripts
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Create SQLite database file and set permissions
+RUN touch database/database.sqlite \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 EXPOSE 10000 8080
 
-CMD php artisan package:discover --ansi && \
+CMD php artisan config:clear && \
+    php artisan package:discover --ansi && \
     php artisan migrate --force && \
     php artisan config:cache && \
     php artisan route:cache && \
