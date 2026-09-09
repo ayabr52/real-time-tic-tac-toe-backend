@@ -1,7 +1,7 @@
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies & PHP extensions
-RUN apk add --no-cache nginx supervisor git unzip libpng-dev libzip-dev zip pdo_sqlite sqlite-dev \
+RUN apk add --no-cache nginx supervisor git unzip libpng-dev libzip-dev zip sqlite-dev \
     && docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip
 
 # Install Composer
@@ -10,7 +10,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Install PHP dependencies
+# Install PHP dependencies without running post-install scripts
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Create SQLite database file and set permissions
