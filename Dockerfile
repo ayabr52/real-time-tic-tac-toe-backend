@@ -17,11 +17,13 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN touch database/database.sqlite \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
-# Configure Nginx to reverse proxy /app to Reverb (port 8080) and all other requests to Laravel (port 10000)
+# Configure Nginx to reverse proxy /app to Reverb (port 8080) and all other requests to Laravel (port 10001)
 RUN echo 'server { \
     listen 10000; \
     location / { \
-        proxy_pass http://127.0.0.1:10000_backend; \
+        proxy_pass http://127.0.0.1:10001; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
     } \
     location /app { \
         proxy_pass http://127.0.0.1:8080; \
@@ -38,4 +40,5 @@ CMD php artisan config:clear && \
     php artisan package:discover --ansi && \
     php artisan migrate --force && \
     php artisan reverb:start --host=0.0.0.0 --port=8080 & \
-    php artisan serve --host=127.0.0.1 --port=10000_backend
+    php artisan serve --host=127.0.0.1 --port=10001 & \
+    nginx -g "daemon off;"
