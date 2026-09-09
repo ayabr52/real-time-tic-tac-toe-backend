@@ -1,8 +1,8 @@
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies & PHP extensions
+# Install system dependencies & PHP extensions (added pcntl)
 RUN apk add --no-cache nginx supervisor git unzip libpng-dev libzip-dev zip sqlite-dev \
-    && docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip
+    && docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath gd zip pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
